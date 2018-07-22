@@ -24,7 +24,7 @@ def signin():
     if request.method == 'POST':
         data = request.get_json()
 
-        response = registration.check_credentials(data["email"], data["password"])
+        response = registration.check_credentials(data["email"], data["password"], data["friend_email"])
 
         return jsonify(response)
 
@@ -34,6 +34,16 @@ def status_change():
         data = request.get_json()
 
         action_change.update_action(data["id"], data["friend_id"], data["action"])
+
+        return jsonify({"success" : "success"})
+
+@app.route('/watch', methods = ['POST'])
+def watch():
+    if request.method == 'POST':
+        data = request.get_json()
+        response = action_change.trigger(data['id'], data['friend_id'])
+
+        return jsonify(response)
 
 if __name__ == "__main__":
     app.run()

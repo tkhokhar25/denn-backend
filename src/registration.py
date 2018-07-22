@@ -15,7 +15,7 @@ def create_user(email, password):
         # Someone with that email exists
         return {"status" : "failure", "code" : 400, "message" : "USER ALREADY EXISTS", "result" : {}}
 
-def check_credentials(email, password):
+def check_credentials(email, password, friend_email):
     connection, cursor = get_database_connection()
 
     cursor.execute("SELECT id, password FROM users WHERE email = '" + str(email) + "';", connection)
@@ -29,7 +29,13 @@ def check_credentials(email, password):
 
     is_password_correct = sha256_crypt.verify(password, hashed_password)
 
+    cursor.execute("SELECT id FROM users WHERE email = '" + str(friend_email) + "';")
+    friend_id = cursor.fetchall()[0][0]
+
+    cursor.execute("UPDATE users SET friend_id = " + str(friend_id) + " WHERE id = " + str(user_id))
+    cursor.execute("UPDATE users SET friend_id = " + str(user_id) + " WHERE id = " + str(friend_id))
+
     if is_password_correct:
-        return {"status" : "success", "code" : 200, "message" : "VALID CREDENTIALS", "result" : {"id" : user_id}}
+        return {"status" : "success", "code" : 200, "message" : "VALID CREDENTIALS", "result" : {"id" : user_id, "friend_id" : friend_id}}
     else:
         return {"status" : "failure", "code" : 400, "message" : "INCORRECT PASSWORD", "result" : {"id" : user_id}}
